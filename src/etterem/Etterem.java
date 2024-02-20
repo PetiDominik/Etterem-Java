@@ -6,13 +6,21 @@ package etterem;
 
 import java.awt.List;
 import java.awt.event.KeyEvent;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.swing.BorderFactory;
 import javax.swing.DefaultListModel;
 import javax.swing.JButton;
 import javax.swing.JList;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JTabbedPane;
 
 /**
  *
@@ -24,7 +32,7 @@ public class Etterem extends javax.swing.JFrame {
      * Creates new form Etterem
      */
     private HashMap<JButton, TableNames> tableButtons;
-    private HashMap<TableNames, String> tableMenus;
+    private HashMap<TableNames, ArrayList<String>> tableMenus;
     private ArrayList<MenuItem> menu;
     private TableNames selectedTable;
     
@@ -42,10 +50,15 @@ public class Etterem extends javax.swing.JFrame {
         this.tableButtons.put(btnTableBlue, TableNames.BLUE);
         this.tableButtons.put(btnTableWhite, TableNames.WHITE);
         
+        for (TableNames TableName : TableNames.values()) {
+            this.tableMenus.put(TableName, new ArrayList<>());
+        }
+        
         this.menu.add(new MenuItem("Babgulyás", 1700));
         this.menu.add(new MenuItem("Rántott sajt", 1900));
         
-        this.refreshJListMenuItems();
+        this.refreshJListMenu(this.jListMenuItems);
+        this.refreshJListOrder();
     }
 
     /**
@@ -87,6 +100,13 @@ public class Etterem extends javax.swing.JFrame {
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
 
+        jTabbedPane1.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                jTabbedPane1MouseClicked(evt);
+            }
+        });
+
+        jPanel1.setName("Order"); // NOI18N
         jPanel1.setPreferredSize(new java.awt.Dimension(400, 400));
 
         jPanel3.setBorder(javax.swing.BorderFactory.createTitledBorder("Asztal"));
@@ -177,9 +197,9 @@ public class Etterem extends javax.swing.JFrame {
 
         jPanel4.setBorder(javax.swing.BorderFactory.createTitledBorder("Ételek"));
 
-        jListMenuItems.addKeyListener(new java.awt.event.KeyAdapter() {
-            public void keyPressed(java.awt.event.KeyEvent evt) {
-                jListMenuItemsKeyPressed(evt);
+        jListMenuItems.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                jListMenuItemsMouseClicked(evt);
             }
         });
         jScrollPane1.setViewportView(jListMenuItems);
@@ -249,6 +269,8 @@ public class Etterem extends javax.swing.JFrame {
 
         jTabbedPane1.addTab("Rendelés", jPanel1);
 
+        jPanel2.setName("Menu"); // NOI18N
+
         jPanel6.setBorder(javax.swing.BorderFactory.createTitledBorder("Ételek"));
 
         jScrollPane3.setViewportView(jListMenuEdit);
@@ -277,8 +299,13 @@ public class Etterem extends javax.swing.JFrame {
         jLabel1.setText("Név:");
 
         btnAddMenuItem.setText("Hozzáadás");
+        btnAddMenuItem.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnAddMenuItemActionPerformed(evt);
+            }
+        });
 
-        spintNewMenuPrice.setModel(new javax.swing.SpinnerNumberModel(0, 0, null, 5));
+        spintNewMenuPrice.setModel(new javax.swing.SpinnerNumberModel(5, 5, null, 5));
 
         javax.swing.GroupLayout jPanel7Layout = new javax.swing.GroupLayout(jPanel7);
         jPanel7.setLayout(jPanel7Layout);
@@ -342,9 +369,19 @@ public class Etterem extends javax.swing.JFrame {
         jMenu1.setText("Fileba mentés");
 
         jMenuItem1.setText("Rendelések mentése");
+        jMenuItem1.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jMenuItem1ActionPerformed(evt);
+            }
+        });
         jMenu1.add(jMenuItem1);
 
         jMenuItem2.setText("Étlap mentése");
+        jMenuItem2.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jMenuItem2ActionPerformed(evt);
+            }
+        });
         jMenu1.add(jMenuItem2);
 
         jMenuBar1.add(jMenu1);
@@ -369,9 +406,7 @@ public class Etterem extends javax.swing.JFrame {
     private void changeTable(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_changeTable
         JButton source = (JButton) evt.getSource();
         
-        TableNames tableName = this.tableButtons.get(source);
-        
-        String orderPanelText = "Rendelés | %s asztal".formatted(tableName.displayName);
+        this.selectedTable = this.tableButtons.get(source);
         
         for (Map.Entry<JButton, TableNames> entry : this.tableButtons.entrySet()) {
             JButton key = entry.getKey();
@@ -381,36 +416,125 @@ public class Etterem extends javax.swing.JFrame {
         
         source.setText("#");
         
-        panelOrder.setBorder(BorderFactory.createTitledBorder(orderPanelText));
+        this.refreshJListOrder();
     }//GEN-LAST:event_changeTable
 
-    private void jListMenuItemsKeyPressed(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_jListMenuItemsKeyPressed
+    private void jListMenuItemsMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jListMenuItemsMouseClicked
         JList source = (JList) evt.getSource();
         
-        if (evt.getKeyCode() == KeyEvent.VK_ENTER) {
+        //if (evt.getValueIsAdjusting()) {
+            String menuItemToAdd = source.getSelectedValue().toString();
+            System.out.println(menuItemToAdd);
+            ArrayList<String> tableMenus = this.tableMenus.get(this.selectedTable);
 
+            if (tableMenus.isEmpty() || !tableMenus.contains(menuItemToAdd)) {
+                this.tableMenus.get(this.selectedTable).add(menuItemToAdd);
+            }
+
+            this.refreshJListOrder();
+            //source.clearSelection();
+        //}
+    }//GEN-LAST:event_jListMenuItemsMouseClicked
+
+    private void jTabbedPane1MouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jTabbedPane1MouseClicked
+        JTabbedPane source = (JTabbedPane) evt.getSource();
+        JPanel selected = (JPanel) source.getSelectedComponent();
+        
+        switch (selected.getName()) {
+            case "Order":
+                this.refreshJListMenu(this.jListMenuItems);
+                this.refreshJListOrder();
+                break;
+            case "Menu":
+                this.refreshJListMenu(this.jListMenuEdit);
+                break;
+            default:
+                throw new AssertionError();
+        }
+    }//GEN-LAST:event_jTabbedPane1MouseClicked
+
+    private void btnAddMenuItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnAddMenuItemActionPerformed
+        String name = this.textNewMenuName.getText();
+        int price = (int) this.spintNewMenuPrice.getValue();
+        
+        if (name.isBlank()) {
+            JOptionPane.showMessageDialog(rootPane, "Az étel neve nem lehet üres!");
+            return;
+        }
+        
+        if (!this.isItemInMenu(name)) {
+            this.menu.add(new MenuItem(name, price));
+            this.refreshJListMenu(this.jListMenuEdit);
+        }
+    }//GEN-LAST:event_btnAddMenuItemActionPerformed
+
+    private void jMenuItem1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItem1ActionPerformed
+        Path path = Path.of("etelek.txt");
+        String str = "";
+        
+        for (MenuItem menuItem : this.menu) {
+            str += menuItem.toString() + "\n";
+        }
+        
+        this.writeFile(path, str);
+    }//GEN-LAST:event_jMenuItem1ActionPerformed
+
+    private void jMenuItem2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItem2ActionPerformed
+        Path path = Path.of("rendeles.txt");
+        String str = "";
+        
+        for (Map.Entry<TableNames, ArrayList<String>> entry : this.tableMenus.entrySet()) {
+            TableNames tableName = entry.getKey();
+            ArrayList<String> orders = entry.getValue();
+            
+            str += this.capitalizeFirst(tableName.displayName) + "\n";
+                    
+            for (String order : orders) {
+                str += order.toString() + "\n";
+            }
+            str += "\n";
+        }
+        
+        this.writeFile(path, str);
+    }//GEN-LAST:event_jMenuItem2ActionPerformed
+    
+    private String capitalizeFirst(String str) {
+        return str.substring(0, 1).toUpperCase() + str.substring(1);
+    }
+    
+    private void writeFile(Path path, String str) {
+
+        try {
+            Files.deleteIfExists(path);
+        } catch (IOException ex) {
+            Logger.getLogger(Etterem.class.getName()).log(Level.SEVERE, null, ex);
         }
 
-    }//GEN-LAST:event_jListMenuItemsKeyPressed
+        try {
+            Files.write(path, str.getBytes());
+        } catch (IOException ex) {
+            Logger.getLogger(Etterem.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
     
-    private void refreshJListMenuItems() {
+    private void refreshJListMenu(JList list) {
         DefaultListModel dLm = new DefaultListModel();
         
         for (MenuItem menuItem : this.menu) {
-            dLm.addElement(menuItem.getName());
+            dLm.addElement(menuItem.toString());
         }
         
-        jListMenuItems.setModel(dLm);
+        list.setModel(dLm);
     }
     
     private void refreshJListOrder() {
+        String orderPanelText = "Rendelés | %s asztal".formatted(this.selectedTable.displayName);
+        
+        panelOrder.setBorder(BorderFactory.createTitledBorder(orderPanelText));
         DefaultListModel dLm = new DefaultListModel();
         
-        for (Map.Entry<TableNames, String> entry : this.tableMenus.entrySet()) {
-            TableNames key = entry.getKey();
-            String val = entry.getValue();
-            
-            dLm.addElement(val);
+        for (String menuItem : this.tableMenus.get(this.selectedTable)) {
+            dLm.addElement(menuItem);
         }
         
         jListOrder.setModel(dLm);
@@ -423,6 +547,15 @@ public class Etterem extends javax.swing.JFrame {
         }
         
         return this.menu.get(i);
+    }
+    
+    private boolean isItemInMenu(String name) {
+        int i = 0;
+        while (i < this.menu.size() && !this.menu.get(i).getName().equals(name)) {
+            i++;
+        }
+        
+        return i < this.menu.size();
     }
     
     /**
