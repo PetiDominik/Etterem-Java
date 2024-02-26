@@ -4,14 +4,15 @@
  */
 package etterem;
 
-import java.awt.List;
-import java.awt.event.KeyEvent;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.BorderFactory;
@@ -26,36 +27,45 @@ import javax.swing.JTabbedPane;
  *
  * @author peti.dominik
  */
-public class Etterem extends javax.swing.JFrame {
+public class EtteremGUI extends javax.swing.JFrame {
 
     /**
      * Creates new form Etterem
      */
-    private HashMap<JButton, TableNames> tableButtons;
-    private HashMap<TableNames, ArrayList<String>> tableMenus;
-    private ArrayList<MenuItem> menu;
-    private TableNames selectedTable;
+    private HashMap<JButton, String> tableButtons;
+    private HashMap<JButton, String> billTableButtons;
+    private ArrayList<Table> tableMenus;
+    private Menu menu;
+    private String selectedTable;
+    private String selectedBillTable;
     
     
-    public Etterem() {
+    public EtteremGUI() {
         this.tableButtons = new HashMap<>();
-        this.tableMenus = new HashMap<>();
-        this.menu = new ArrayList<>();
-        this.selectedTable = TableNames.RED;
+        this.billTableButtons = new HashMap<>();
+        this.tableMenus = new ArrayList<>();
+        this.menu = new Menu();
+        this.selectedTable = TableNames.RED.displayName;
+        this.selectedTable = TableNames.RED.displayName;
         
         initComponents();
         
-        this.tableButtons.put(btnTableRed, TableNames.RED);
-        this.tableButtons.put(btnTableGreen, TableNames.GREEN);
-        this.tableButtons.put(btnTableBlue, TableNames.BLUE);
-        this.tableButtons.put(btnTableWhite, TableNames.WHITE);
+        this.tableButtons.put(btnTableRed, TableNames.RED.displayName);
+        this.tableButtons.put(btnTableGreen, TableNames.GREEN.displayName);
+        this.tableButtons.put(btnTableBlue, TableNames.BLUE.displayName);
+        this.tableButtons.put(btnTableWhite, TableNames.WHITE.displayName);
+        
+        this.billTableButtons.put(btnTableRedBill, TableNames.RED.displayName);
+        this.billTableButtons.put(btnTableGreenBill, TableNames.GREEN.displayName);
+        this.billTableButtons.put(btnTableBlueBill, TableNames.BLUE.displayName);
+        this.billTableButtons.put(btnTableWhiteBill, TableNames.WHITE.displayName);
         
         for (TableNames TableName : TableNames.values()) {
-            this.tableMenus.put(TableName, new ArrayList<>());
+            this.tableMenus.add(new Table(TableName.displayName));
         }
         
-        this.menu.add(new MenuItem("Babgulyás", 1700));
-        this.menu.add(new MenuItem("Rántott sajt", 1900));
+        this.menu.addMenuItem(new MenuItem("Babgulyás", 1700));
+        this.menu.addMenuItem(new MenuItem("Rántott sajt", 1900));
         
         this.refreshJListMenu(this.jListMenuItems);
         this.refreshJListOrder();
@@ -93,6 +103,17 @@ public class Etterem extends javax.swing.JFrame {
         textNewMenuName = new javax.swing.JTextField();
         btnAddMenuItem = new javax.swing.JButton();
         spintNewMenuPrice = new javax.swing.JSpinner();
+        jPanel5 = new javax.swing.JPanel();
+        jPanel8 = new javax.swing.JPanel();
+        btnTableGreenBill = new javax.swing.JButton();
+        btnTableWhiteBill = new javax.swing.JButton();
+        btnTableRedBill = new javax.swing.JButton();
+        btnTableBlueBill = new javax.swing.JButton();
+        jScrollPane4 = new javax.swing.JScrollPane();
+        txtBill = new javax.swing.JTextArea();
+        jLabel3 = new javax.swing.JLabel();
+        lblBillSum = new javax.swing.JLabel();
+        btnPrintAll = new javax.swing.JButton();
         jMenuBar1 = new javax.swing.JMenuBar();
         jMenu1 = new javax.swing.JMenu();
         jMenuItem1 = new javax.swing.JMenuItem();
@@ -366,6 +387,119 @@ public class Etterem extends javax.swing.JFrame {
 
         jTabbedPane1.addTab("Ételek", jPanel2);
 
+        jPanel5.setName("Orders"); // NOI18N
+
+        jPanel8.setBorder(javax.swing.BorderFactory.createTitledBorder("Asztal"));
+
+        btnTableGreenBill.setBackground(new java.awt.Color(153, 204, 0));
+        btnTableGreenBill.setFont(new java.awt.Font("Segoe UI", 1, 18)); // NOI18N
+        btnTableGreenBill.setForeground(new java.awt.Color(0, 0, 0));
+        btnTableGreenBill.setMargin(new java.awt.Insets(0, 0, 0, 0));
+        btnTableGreenBill.setMaximumSize(new java.awt.Dimension(40, 40));
+        btnTableGreenBill.setMinimumSize(new java.awt.Dimension(40, 40));
+        btnTableGreenBill.setPreferredSize(new java.awt.Dimension(40, 40));
+
+        btnTableWhiteBill.setBackground(new java.awt.Color(255, 255, 255));
+        btnTableWhiteBill.setFont(new java.awt.Font("Segoe UI", 1, 18)); // NOI18N
+        btnTableWhiteBill.setForeground(new java.awt.Color(0, 0, 0));
+        btnTableWhiteBill.setMargin(new java.awt.Insets(0, 0, 0, 0));
+        btnTableWhiteBill.setMaximumSize(new java.awt.Dimension(40, 40));
+        btnTableWhiteBill.setMinimumSize(new java.awt.Dimension(40, 40));
+        btnTableWhiteBill.setPreferredSize(new java.awt.Dimension(40, 40));
+
+        btnTableRedBill.setBackground(new java.awt.Color(255, 51, 51));
+        btnTableRedBill.setFont(new java.awt.Font("Segoe UI", 1, 18)); // NOI18N
+        btnTableRedBill.setForeground(new java.awt.Color(0, 0, 0));
+        btnTableRedBill.setText("#");
+        btnTableRedBill.setMargin(new java.awt.Insets(0, 0, 0, 0));
+        btnTableRedBill.setMaximumSize(new java.awt.Dimension(40, 40));
+        btnTableRedBill.setMinimumSize(new java.awt.Dimension(40, 40));
+        btnTableRedBill.setPreferredSize(new java.awt.Dimension(40, 40));
+
+        btnTableBlueBill.setBackground(new java.awt.Color(51, 51, 255));
+        btnTableBlueBill.setFont(new java.awt.Font("Segoe UI", 1, 18)); // NOI18N
+        btnTableBlueBill.setForeground(new java.awt.Color(0, 0, 0));
+        btnTableBlueBill.setMargin(new java.awt.Insets(0, 0, 0, 0));
+        btnTableBlueBill.setMaximumSize(new java.awt.Dimension(40, 40));
+        btnTableBlueBill.setMinimumSize(new java.awt.Dimension(40, 40));
+        btnTableBlueBill.setPreferredSize(new java.awt.Dimension(40, 40));
+
+        javax.swing.GroupLayout jPanel8Layout = new javax.swing.GroupLayout(jPanel8);
+        jPanel8.setLayout(jPanel8Layout);
+        jPanel8Layout.setHorizontalGroup(
+            jPanel8Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(jPanel8Layout.createSequentialGroup()
+                .addContainerGap()
+                .addComponent(btnTableRedBill, javax.swing.GroupLayout.PREFERRED_SIZE, 40, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(btnTableGreenBill, javax.swing.GroupLayout.PREFERRED_SIZE, 40, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(btnTableBlueBill, javax.swing.GroupLayout.PREFERRED_SIZE, 40, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(btnTableWhiteBill, javax.swing.GroupLayout.PREFERRED_SIZE, 40, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+        );
+        jPanel8Layout.setVerticalGroup(
+            jPanel8Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(jPanel8Layout.createSequentialGroup()
+                .addContainerGap()
+                .addGroup(jPanel8Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(btnTableWhiteBill, javax.swing.GroupLayout.PREFERRED_SIZE, 40, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(btnTableBlueBill, javax.swing.GroupLayout.PREFERRED_SIZE, 40, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addGroup(jPanel8Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                        .addComponent(btnTableRedBill, javax.swing.GroupLayout.PREFERRED_SIZE, 40, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addComponent(btnTableGreenBill, javax.swing.GroupLayout.PREFERRED_SIZE, 40, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                .addContainerGap())
+        );
+
+        txtBill.setColumns(20);
+        txtBill.setFont(new java.awt.Font("Monospaced", 0, 12)); // NOI18N
+        txtBill.setRows(5);
+        txtBill.setEnabled(false);
+        jScrollPane4.setViewportView(txtBill);
+
+        jLabel3.setFont(new java.awt.Font("Monospaced", 0, 12)); // NOI18N
+        jLabel3.setText("Összesen");
+
+        lblBillSum.setFont(new java.awt.Font("Monospaced", 0, 12)); // NOI18N
+        lblBillSum.setHorizontalAlignment(javax.swing.SwingConstants.RIGHT);
+
+        btnPrintAll.setText("Összes nyomtatása");
+
+        javax.swing.GroupLayout jPanel5Layout = new javax.swing.GroupLayout(jPanel5);
+        jPanel5.setLayout(jPanel5Layout);
+        jPanel5Layout.setHorizontalGroup(
+            jPanel5Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(jPanel5Layout.createSequentialGroup()
+                .addContainerGap()
+                .addGroup(jPanel5Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(btnPrintAll, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addComponent(jScrollPane4, javax.swing.GroupLayout.Alignment.TRAILING)
+                    .addComponent(jPanel8, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addGroup(jPanel5Layout.createSequentialGroup()
+                        .addComponent(jLabel3)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(lblBillSum, javax.swing.GroupLayout.DEFAULT_SIZE, 240, Short.MAX_VALUE)))
+                .addContainerGap())
+        );
+        jPanel5Layout.setVerticalGroup(
+            jPanel5Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(jPanel5Layout.createSequentialGroup()
+                .addContainerGap()
+                .addComponent(jPanel8, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(jScrollPane4, javax.swing.GroupLayout.DEFAULT_SIZE, 183, Short.MAX_VALUE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addGroup(jPanel5Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(jLabel3, javax.swing.GroupLayout.Alignment.TRAILING)
+                    .addComponent(lblBillSum, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.PREFERRED_SIZE, 17, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addGap(18, 18, 18)
+                .addComponent(btnPrintAll)
+                .addContainerGap())
+        );
+
+        jTabbedPane1.addTab("Össz. számla", jPanel5);
+
         jMenu1.setText("Fileba mentés");
 
         jMenuItem1.setText("Rendelések mentése");
@@ -408,9 +542,8 @@ public class Etterem extends javax.swing.JFrame {
         
         this.selectedTable = this.tableButtons.get(source);
         
-        for (Map.Entry<JButton, TableNames> entry : this.tableButtons.entrySet()) {
+        for (Map.Entry<JButton, String> entry : this.tableButtons.entrySet()) {
             JButton key = entry.getKey();
-            TableNames val = entry.getValue();
             key.setText("");
         }
         
@@ -423,16 +556,15 @@ public class Etterem extends javax.swing.JFrame {
         JList source = (JList) evt.getSource();
         
         //if (evt.getValueIsAdjusting()) {
-            String menuItemToAdd = source.getSelectedValue().toString();
-            System.out.println(menuItemToAdd);
-            ArrayList<String> tableMenus = this.tableMenus.get(this.selectedTable);
+        Optional<MenuItem> menuItemToAdd = this.menu.getMenuItemByName(source.getSelectedValue().toString());
+        
+        if (menuItemToAdd.isEmpty()) { return; }
 
-            if (tableMenus.isEmpty() || !tableMenus.contains(menuItemToAdd)) {
-                this.tableMenus.get(this.selectedTable).add(menuItemToAdd);
-            }
+        Table selectedTable = this.getTableByName(this.selectedTable);
+            
+        selectedTable.addToOrder(menuItemToAdd.get());
 
-            this.refreshJListOrder();
-            //source.clearSelection();
+        this.refreshJListOrder();
         //}
     }//GEN-LAST:event_jListMenuItemsMouseClicked
 
@@ -448,8 +580,11 @@ public class Etterem extends javax.swing.JFrame {
             case "Menu":
                 this.refreshJListMenu(this.jListMenuEdit);
                 break;
+            case "Orders":
+                this.handleOrdersListing();
+                break;
             default:
-                throw new AssertionError();
+                throw new UnsupportedOperationException("Fejlesztés alatt...");
         }
     }//GEN-LAST:event_jTabbedPane1MouseClicked
 
@@ -462,8 +597,7 @@ public class Etterem extends javax.swing.JFrame {
             return;
         }
         
-        if (!this.isItemInMenu(name)) {
-            this.menu.add(new MenuItem(name, price));
+        if (this.menu.addMenuItem(new MenuItem(name, price))) {
             this.refreshJListMenu(this.jListMenuEdit);
         }
     }//GEN-LAST:event_btnAddMenuItemActionPerformed
@@ -472,7 +606,7 @@ public class Etterem extends javax.swing.JFrame {
         Path path = Path.of("etelek.txt");
         String str = "";
         
-        for (MenuItem menuItem : this.menu) {
+        for (MenuItem menuItem : this.menu.getMenu()) {
             str += menuItem.toString() + "\n";
         }
         
@@ -483,13 +617,11 @@ public class Etterem extends javax.swing.JFrame {
         Path path = Path.of("rendeles.txt");
         String str = "";
         
-        for (Map.Entry<TableNames, ArrayList<String>> entry : this.tableMenus.entrySet()) {
-            TableNames tableName = entry.getKey();
-            ArrayList<String> orders = entry.getValue();
+        for (Table table : this.tableMenus) {
             
-            str += this.capitalizeFirst(tableName.displayName) + "\n";
+            str += this.capitalizeFirst(table.getTableName()) + "\n";
                     
-            for (String order : orders) {
+            for (MenuItem order : table.getOrders()) {
                 str += order.toString() + "\n";
             }
             str += "\n";
@@ -507,55 +639,113 @@ public class Etterem extends javax.swing.JFrame {
         try {
             Files.deleteIfExists(path);
         } catch (IOException ex) {
-            Logger.getLogger(Etterem.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(EtteremGUI.class.getName()).log(Level.SEVERE, null, ex);
         }
 
         try {
             Files.write(path, str.getBytes());
         } catch (IOException ex) {
-            Logger.getLogger(Etterem.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(EtteremGUI.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
     
     private void refreshJListMenu(JList list) {
         DefaultListModel dLm = new DefaultListModel();
         
-        for (MenuItem menuItem : this.menu) {
-            dLm.addElement(menuItem.toString());
+        for (MenuItem menuItem : this.menu.getMenu()) {
+            dLm.addElement(menuItem.getName());
         }
         
         list.setModel(dLm);
     }
     
     private void refreshJListOrder() {
-        String orderPanelText = "Rendelés | %s asztal".formatted(this.selectedTable.displayName);
+        String orderPanelText = "Rendelés | %s asztal".formatted(this.selectedTable);
         
         panelOrder.setBorder(BorderFactory.createTitledBorder(orderPanelText));
         DefaultListModel dLm = new DefaultListModel();
         
-        for (String menuItem : this.tableMenus.get(this.selectedTable)) {
-            dLm.addElement(menuItem);
+        Table table = this.getTableByName(this.selectedTable);
+        
+        for (MenuItem menuItem : table.getOrders()) {
+            dLm.addElement(menuItem.getName());
         }
         
         jListOrder.setModel(dLm);
     }
     
-    private MenuItem getItemByName(String name) {
+    private Table getTableByName(String tableName) {
         int i = 0;
-        while (i < this.menu.size() && !this.menu.get(i).getName().equals(name)) {
+        while(i < this.tableMenus.size() && !this.tableMenus.get(i).getTableName().equals(tableName)) {
             i++;
         }
         
-        return this.menu.get(i);
+        return this.tableMenus.get(i);
     }
     
-    private boolean isItemInMenu(String name) {
-        int i = 0;
-        while (i < this.menu.size() && !this.menu.get(i).getName().equals(name)) {
-            i++;
+    private void handleOrdersListing() {
+        try {
+            Restaurant restaurant = new Restaurant();
+            restaurant.loadMenuItems();
+            restaurant.loadTables();
+            
+            Optional<Table> table = restaurant.getTableByName("piros");
+            if (table.isPresent()) {
+                refreshBill(table.get());
+            }
+            
+            for (Map.Entry<JButton, String> entry : this.billTableButtons.entrySet()) {
+                JButton key = entry.getKey();
+                String val = entry.getValue();
+                
+                key.addActionListener(new ActionListener() {
+                    @Override
+                    public void actionPerformed(ActionEvent e) {
+                        JButton source = (JButton) e.getSource();
+                        for (Map.Entry<JButton, String> entry : billTableButtons.entrySet()) {
+                            JButton key = entry.getKey();
+                            key.setText("");
+                        }
+
+                        source.setText("#");
+        
+                        String tableName = billTableButtons.get(source);
+
+                        Optional<Table> table = restaurant.getTableByName(tableName);
+                        if (table.isPresent()) {
+                            refreshBill(table.get());
+                        }
+                    }
+                });
+                
+            }
+            
+            btnPrintAll.addActionListener(new ActionListener() {
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    writeBills(restaurant);
+                }
+            });
+            
+        } catch (IOException ex) {
+            Logger.getLogger(EtteremGUI.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
+    
+    private void refreshBill(Table table) {
+        String txt = "";
+        ArrayList<MenuItem> orders = table.getOrders();
+        
+        for (MenuItem item : orders) {
+            txt += item.toString(45) + System.lineSeparator();
         }
         
-        return i < this.menu.size();
+        txtBill.setText(txt);
+        lblBillSum.setText(String.valueOf(table.getPriceSum()) + " Ft");
+    }
+    
+    private void writeBills(Restaurant restaurant) {
+        System.out.println(restaurant.toString(30));
     }
     
     /**
@@ -575,32 +765,39 @@ public class Etterem extends javax.swing.JFrame {
                 }
             }
         } catch (ClassNotFoundException ex) {
-            java.util.logging.Logger.getLogger(Etterem.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+            java.util.logging.Logger.getLogger(EtteremGUI.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
         } catch (InstantiationException ex) {
-            java.util.logging.Logger.getLogger(Etterem.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+            java.util.logging.Logger.getLogger(EtteremGUI.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
         } catch (IllegalAccessException ex) {
-            java.util.logging.Logger.getLogger(Etterem.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+            java.util.logging.Logger.getLogger(EtteremGUI.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
         } catch (javax.swing.UnsupportedLookAndFeelException ex) {
-            java.util.logging.Logger.getLogger(Etterem.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+            java.util.logging.Logger.getLogger(EtteremGUI.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
         }
+        //</editor-fold>
         //</editor-fold>
 
         /* Create and display the form */
         java.awt.EventQueue.invokeLater(new Runnable() {
             public void run() {
-                new Etterem().setVisible(true);
+                new EtteremGUI().setVisible(true);
             }
         });
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton btnAddMenuItem;
+    private javax.swing.JButton btnPrintAll;
     private javax.swing.JButton btnTableBlue;
+    private javax.swing.JButton btnTableBlueBill;
     private javax.swing.JButton btnTableGreen;
+    private javax.swing.JButton btnTableGreenBill;
     private javax.swing.JButton btnTableRed;
+    private javax.swing.JButton btnTableRedBill;
     private javax.swing.JButton btnTableWhite;
+    private javax.swing.JButton btnTableWhiteBill;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;
+    private javax.swing.JLabel jLabel3;
     private javax.swing.JList<String> jListMenuEdit;
     private javax.swing.JList<String> jListMenuItems;
     private javax.swing.JList<String> jListOrder;
@@ -612,14 +809,19 @@ public class Etterem extends javax.swing.JFrame {
     private javax.swing.JPanel jPanel2;
     private javax.swing.JPanel jPanel3;
     private javax.swing.JPanel jPanel4;
+    private javax.swing.JPanel jPanel5;
     private javax.swing.JPanel jPanel6;
     private javax.swing.JPanel jPanel7;
+    private javax.swing.JPanel jPanel8;
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JScrollPane jScrollPane2;
     private javax.swing.JScrollPane jScrollPane3;
+    private javax.swing.JScrollPane jScrollPane4;
     private javax.swing.JTabbedPane jTabbedPane1;
+    private javax.swing.JLabel lblBillSum;
     private javax.swing.JPanel panelOrder;
     private javax.swing.JSpinner spintNewMenuPrice;
     private javax.swing.JTextField textNewMenuName;
+    private javax.swing.JTextArea txtBill;
     // End of variables declaration//GEN-END:variables
 }
